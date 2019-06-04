@@ -202,7 +202,37 @@ void parseCommand() {
 
             matrix.update();
             break;
+          case CMD_MATRIX_SET_BRIGHTNESS: {
+              if (cmd_stack.size() < 3)
+                return sendResultCode(EMPTY_COMMAND);
+
+              byte v = cmd_stack[2] & 0x7F;
+
+              static const byte current[] = {
+                ROW_CURRENT_05MA, ROW_CURRENT_10MA, ROW_CURRENT_15MA, ROW_CURRENT_20MA,
+                ROW_CURRENT_25MA, ROW_CURRENT_30MA, ROW_CURRENT_35MA, ROW_CURRENT_40MA,
+                ROW_CURRENT_45MA, ROW_CURRENT_50MA, ROW_CURRENT_55MA, ROW_CURRENT_60MA,
+                ROW_CURRENT_65MA, ROW_CURRENT_70MA, ROW_CURRENT_75MA
+              };
+
+              constexpr size_t N = sizeof(current) / sizeof(current[0]);
+              const size_t step = v / N;
+              const size_t idx = step >= N ? (N - 1) : step;
+
+              matrix.setCurrentLimit(current[idx]);
+              break;
+            default:
+              return sendResultCode(UNKNOWN_COMMAND);
+              break;
+            }
         }
+      }
+      break;
+    case CMD_TARGET_DEVICE: {
+        //        switch (cmd) {
+        //          case CMD_DEVICE_FIRMWARE_VERSION:
+        //            break;
+        //        }
       }
       break;
     default:
