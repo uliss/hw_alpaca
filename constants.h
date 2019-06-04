@@ -5,6 +5,7 @@
 namespace alpaca {
 
 const uint8_t I2C_ADDR = 0x60;
+const uint8_t VERSION = 0x01;
 
 enum CommandType {
   CMD_START = 0x81,
@@ -28,7 +29,9 @@ enum CommandType {
   CMD_MATRIX_CLEAR = 0x40,
   CMD_MATRIX_FILL = 0x50,
   CMD_MATRIX_DRAW = 0x60,
-  CMD_MATRIX_CHAR = 0x70
+  CMD_MATRIX_CHAR = 0x70,
+  CMD_DEVICE_SYNC = 0x10,
+  CMD_DEVICE_VERSION = 0x20
 };
 
 enum JackMode {

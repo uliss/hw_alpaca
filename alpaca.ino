@@ -27,6 +27,13 @@ ByteStack cmd_stack;
 #define L7BIT(v) (v & 0x7F)
 #define U7BIT(v) ((v & (~0x007F)) >> 7)
 
+template<typename T>
+void xy2mtx(T& x, T& y) {
+  T tmp = y;
+  y = 7 - x;
+  x = tmp;
+}
+
 void setup() {
   pinMode(input_pins[0], INPUT_PULLUP);
   pinMode(input_pins[1], INPUT_PULLUP);
@@ -133,9 +140,12 @@ void setJackMode(byte n, JackMode m) {
   }
 }
 
-void sendResultCode(int e) {
-  byte buf[] = { CMD_START, CMD_RESPONSE | e, CMD_END };
-  Serial.write(buf, sizeof(buf));
+void sendResultCode(int e, uint8_t argc = 0, uint8_t* argv = 0) {
+  const byte pre[] = { CMD_START, CMD_RESPONSE | e };
+  Serial.write(pre, sizeof(pre));
+  Serial.write(argc);
+  Serial.write(argv, argc);
+  Serial.write(CMD_END);
 }
 
 void jackCommand(byte n, byte cmd) {
@@ -220,19 +230,57 @@ void parseCommand() {
               const size_t idx = step >= N ? (N - 1) : step;
 
               matrix.setCurrentLimit(current[idx]);
-              break;
-            default:
-              return sendResultCode(UNKNOWN_COMMAND);
-              break;
             }
+            break;
+          case CMD_MATRIX_SET_PIXEL: {
+              if (cmd_stack.size() < 3)
+                return sendResultCode(EMPTY_COMMAND);
+
+              uint16_t pixel_pack = cmd_stack[2] & 0x7F;
+              uint16_t x = pixel_pack & 0x7;
+              uint16_t y = ((pixel_pack & 0x70) >> 4) + 1; // vertical offset
+              if (y > 6)
+                y = 6;
+
+              xy2mtx(x, y);
+
+              matrix.drawPixel(x, y);
+              matrix.update();
+            }
+            break;
+          case CMD_MATRIX_CLEAR_PIXEL: {
+              if (cmd_stack.size() < 3)
+                return sendResultCode(EMPTY_COMMAND);
+
+              uint16_t pixel_pack = cmd_stack[2] & 0x7F;
+              uint16_t x = pixel_pack & 0x7;
+              uint16_t y = ((pixel_pack & 0x70) >> 4) + 1; // vertical offset
+              if (y > 6)
+                y = 6;
+
+              xy2mtx(x, y);
+              matrix.clearPixel(x, y);
+              matrix.update();
+            }
+            break;
+          default:
+            return sendResultCode(UNKNOWN_COMMAND);
+            break;
         }
       }
       break;
     case CMD_TARGET_DEVICE: {
-        //        switch (cmd) {
-        //          case CMD_DEVICE_FIRMWARE_VERSION:
-        //            break;
-        //        }
+        switch (cmd) {
+          case CMD_DEVICE_VERSION: {
+              const byte buf[] = { CMD_DEVICE_VERSION, VERSION };
+              sendResultCode(OK, sizeof(buf), buf);
+            }
+            break;
+          case CMD_DEVICE_SYNC: {
+            
+
+            } break;
+        }
       }
       break;
     default:
@@ -262,7 +310,7 @@ void processSerial() {
     pushCommand(Serial.read());
 }
 
-void sendDigital(byte n) {
+void sendDigital(byte n, bool changed = true) {
   static int prev_values[N_PINS] = { 1, 1, 1, 1 };
 
   // pullup input reverted
