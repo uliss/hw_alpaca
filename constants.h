@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+
 namespace alpaca {
 
-const byte I2C_ADDR = 0x60;
+const uint8_t I2C_ADDR = 0x60;
 
 enum CommandType {
   CMD_START = 0x81,
