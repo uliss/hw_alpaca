@@ -245,7 +245,6 @@ void parseCommand() {
               xy2mtx(x, y);
 
               matrix.drawPixel(x, y);
-              matrix.update();
             }
             break;
           case CMD_MATRIX_CLEAR_PIXEL: {
@@ -260,6 +259,17 @@ void parseCommand() {
 
               xy2mtx(x, y);
               matrix.clearPixel(x, y);
+            }
+            break;
+          case CMD_MATRIX_FILL: {
+              for (int i = 0; i < 8; i++) {
+                for (int j = 1; j < 7; j++) {
+                  uint16_t x0 = i;
+                  uint16_t y0 = j;
+                  xy2mtx(x0, y0);
+                  matrix.drawPixel(x0, y0, false);
+                }
+              }
               matrix.update();
             }
             break;
@@ -345,7 +355,7 @@ void sendDigital(byte n) {
 
 void syncMode(byte n) {
   JackMode m = jack_modes[n];
-  const byte buf[] = {  CMD_DEVICE_MODE, m };
+  const byte buf[] = {  CMD_DEVICE_MODE, n, m };
   return sendResultCode(OK, sizeof(buf), buf);
 }
 

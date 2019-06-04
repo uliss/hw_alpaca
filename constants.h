@@ -5,7 +5,7 @@
 namespace alpaca {
 
 const uint8_t I2C_ADDR = 0x60;
-const uint8_t VERSION = 0x01;
+const uint8_t VERSION = 0x02;
 
 enum CommandType {
   CMD_START = 0x81,
