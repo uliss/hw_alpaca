@@ -31,7 +31,8 @@ enum CommandType {
   CMD_MATRIX_DRAW = 0x60,
   CMD_MATRIX_CHAR = 0x70,
   CMD_DEVICE_SYNC = 0x10,
-  CMD_DEVICE_VERSION = 0x20
+  CMD_DEVICE_VERSION = 0x20,
+  CMD_DEVICE_MODE = 0x30
 };
 
 enum JackMode {

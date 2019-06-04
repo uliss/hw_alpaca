@@ -273,12 +273,15 @@ void parseCommand() {
         switch (cmd) {
           case CMD_DEVICE_VERSION: {
               const byte buf[] = { CMD_DEVICE_VERSION, VERSION };
-              sendResultCode(OK, sizeof(buf), buf);
+              return sendResultCode(OK, sizeof(buf), buf);
             }
             break;
           case CMD_DEVICE_SYNC: {
-            
-
+              syncMode(0);
+              syncMode(1);
+              syncJack(0);
+              syncJack(1);
+              return;
             } break;
         }
       }
@@ -310,11 +313,7 @@ void processSerial() {
     pushCommand(Serial.read());
 }
 
-void sendDigital(byte n, bool changed = true) {
-  static int prev_values[N_PINS] = { 1, 1, 1, 1 };
-
-  // pullup input reverted
-  int v = digitalRead(input_pins[n]) ? 0 : 1;
+void updateMatrix(byte n, int v) {
   byte y = n < 2 ? 7 : 0;
 
   if (v)
@@ -323,13 +322,53 @@ void sendDigital(byte n, bool changed = true) {
     matrix.clearPixel(7, y);
 
   matrix.update();
+}
+
+void doSendDigital(byte n, int v) {
+  const byte buf[] = {CMD_START, CMD_SEND_DIGITAL | (n << 1) | v, CMD_END};
+  Serial.write(buf, sizeof(buf));
+}
+
+void sendDigital(byte n) {
+  static int prev_values[N_PINS] = { 1, 1, 1, 1 };
+
+  // pullup input reverted
+  int v = digitalRead(input_pins[n]) ? 0 : 1;
 
   if (prev_values[n] != v) {
     prev_values[n] = v;
-
-    byte buf[] = {CMD_START, CMD_SEND_DIGITAL | (n << 1) | v, CMD_END};
-    Serial.write(buf, sizeof(buf));
+    doSendDigital(n, v);
   }
+
+  updateMatrix(n, v);
+}
+
+void syncMode(byte n) {
+  JackMode m = jack_modes[n];
+  const byte buf[] = {  CMD_DEVICE_MODE, m };
+  return sendResultCode(OK, sizeof(buf), buf);
+}
+
+void syncJack(byte n) {
+  JackMode m = jack_modes[n];
+
+  switch (m) {
+    case MODE_DIGITAL1:
+      syncDigital(2 * n);
+      break;
+    case MODE_DIGITAL2:
+      syncDigital(2 * n + 1);
+      break;
+    case MODE_DIGITAL_BOTH:
+      syncDigital(2 * n);
+      syncDigital(2 * n + 1);
+      break;
+  }
+}
+
+void syncDigital(byte n) {
+  int v = digitalRead(input_pins[n]) ? 0 : 1;
+  doSendDigital(n, v);
 }
 
 void sendAnalog(byte n) {
