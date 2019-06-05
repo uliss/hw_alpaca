@@ -273,6 +273,47 @@ void parseCommand() {
               matrix.update();
             }
             break;
+          case CMD_MATRIX_ROW: {
+              if (cmd_stack.size() < 5)
+                return sendResultCode(EMPTY_COMMAND);
+
+              uint16_t row = cmd_stack[2] & 0x7F;
+              uint16_t v0 = cmd_stack[3] & 0xF;
+              uint16_t v1 = cmd_stack[4] & 0xF;
+
+              // left part
+              for (int j = 0; j < 4; j++) {
+                uint16_t x0 = row;
+                uint16_t y0 = j;
+                xy2mtx(x0, y0);
+
+                int on = (1 << j) & v0;
+                if (on)
+                  matrix.drawPixel(x0, y0, false);
+                else
+                  matrix.clearPixel(x0, y0, false);
+              }
+
+              // right part
+              for (int j = 0; j < 4; j++) {
+                uint16_t x0 = row;
+                uint16_t y0 = j + 4;
+                xy2mtx(x0, y0);
+
+                int on = (1 << j) & v1;
+                if (on)
+                  matrix.drawPixel(x0, y0, false);
+                else
+                  matrix.clearPixel(x0, y0, false);
+              }
+
+              matrix.update();
+
+            } break;
+          case CMD_MATRIX_COL: {
+              if (cmd_stack.size() < 3)
+                return sendResultCode(EMPTY_COMMAND);
+            } break;
           default:
             return sendResultCode(UNKNOWN_COMMAND);
             break;
