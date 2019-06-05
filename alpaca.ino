@@ -1,6 +1,6 @@
 // i2c
 #include "Wire.h"
-#include "TroykaLedMatrix.h"
+#include "TroykaLedMatrix/TroykaLedMatrix.h"
 #include <EEPROM.h>
 #include "abc.h"
 #include "array.h"
@@ -314,6 +314,10 @@ void parseCommand() {
               if (cmd_stack.size() < 3)
                 return sendResultCode(EMPTY_COMMAND);
             } break;
+          case CMD_MATRIX_INVERT: {
+
+            }
+            break;
           default:
             return sendResultCode(UNKNOWN_COMMAND);
             break;
