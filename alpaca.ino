@@ -1,6 +1,6 @@
 // i2c
 #include "Wire.h"
-#include "TroykaLedMatrix/TroykaLedMatrix.h"
+#include "TroykaLedMatrix.h"
 #include <EEPROM.h>
 #include "abc.h"
 #include "array.h"
@@ -19,7 +19,6 @@ const byte input_pins[N_PINS] = { A1, A0, A3, A2 };
 const byte input_led_pixel[N_PINS][2] = { {0, 0}, {0, 7}, {7, 7}, {7, 0} };
 
 JackMode jack_modes[N_INPUTS] = { MODE_DIGITAL_BOTH, MODE_DIGITAL_BOTH };
-TroykaLedMatrix matrix(I2C_ADDR);
 
 typedef Array<byte, 10> ByteStack;
 ByteStack cmd_stack;
@@ -34,6 +33,8 @@ void xy2mtx(T& x, T& y) {
   x = tmp;
 }
 
+TroykaLedMatrix matrix(I2C_ADDR);
+
 void setup() {
   pinMode(input_pins[0], INPUT_PULLUP);
   pinMode(input_pins[1], INPUT_PULLUP);
@@ -42,22 +43,24 @@ void setup() {
 
   analogReference(EXTERNAL);
   Serial.begin(BAUD);
+
+  Wire.begin();
   matrix.begin();
   matrix.clear();
 
   delay(250);
 
-  matrix.drawRow(0, "\1\1\1\1\1\1\1\1");
-  matrix.drawRow(7, "\1\1\1\1\1\1\1\1");
-  matrix.drawColumn(0, "\1\1\1\1\1\1\1\1");
-  matrix.drawColumn(7, "\1\1\1\1\1\1\1\1");
+  matrix.drawRow(0, (uint8_t*)"\1\1\1\1\1\1\1\1");
+  matrix.drawRow(7, (uint8_t*)"\1\1\1\1\1\1\1\1");
+  matrix.drawColumn(0, (uint8_t*)"\1\1\1\1\1\1\1\1");
+  matrix.drawColumn(7, (uint8_t*)"\1\1\1\1\1\1\1\1");
 
   delay(250);
 
-  matrix.drawColumn(0, "\0\0\0\0\0\0\0\0");
-  matrix.drawColumn(7, "\0\0\0\0\0\0\0\0");
-  matrix.drawRow(0, "\0\0\0\0\0\0\0\0");
-  matrix.drawRow(7, "\0\0\0\0\0\0\0\0");
+  matrix.drawColumn(0, (uint8_t*)"\0\0\0\0\0\0\0\0");
+  matrix.drawColumn(7, (uint8_t*)"\0\0\0\0\0\0\0\0");
+  matrix.drawRow(0, (uint8_t*)"\0\0\0\0\0\0\0\0");
+  matrix.drawRow(7, (uint8_t*)"\0\0\0\0\0\0\0\0");
 
 
   setJackMode(0, MODE_DIGITAL1);
@@ -140,7 +143,7 @@ void setJackMode(byte n, JackMode m) {
   }
 }
 
-void sendResultCode(int e, uint8_t argc = 0, uint8_t* argv = 0) {
+void sendResultCode(int e, uint8_t argc = 0, const uint8_t* argv = 0) {
   const byte pre[] = { CMD_START, CMD_RESPONSE | e };
   Serial.write(pre, sizeof(pre));
   Serial.write(argc);
@@ -315,7 +318,9 @@ void parseCommand() {
                 return sendResultCode(EMPTY_COMMAND);
             } break;
           case CMD_MATRIX_INVERT: {
-
+              for (int i = 0; i < 7; i++) {
+                auto row = matrix.getRow(i);
+              }
             }
             break;
           default:
