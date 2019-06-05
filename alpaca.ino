@@ -24,8 +24,12 @@ JackMode jack_modes[N_INPUTS] = { MODE_DIGITAL_BOTH, MODE_DIGITAL_BOTH };
 typedef Array<byte, 10> ByteStack;
 ByteStack cmd_stack;
 
-uint8_t L7BIT(uint16_t v) { return v & 0x7F; }
-uint8_t U7BIT(uint16_t v) { return (v & (~0x007F)) >> 7; }
+uint8_t L7BIT(uint16_t v) {
+  return v & 0x7F;
+}
+uint8_t U7BIT(uint16_t v) {
+  return (v & (~0x007F)) >> 7;
+}
 
 template<typename T>
 void xy2mtx(T& x, T& y) {
@@ -314,8 +318,40 @@ void parseCommand() {
 
             } break;
           case CMD_MATRIX_COL: {
-              if (cmd_stack.size() < 3)
+              if (cmd_stack.size() < 4)
                 return sendResultCode(EMPTY_COMMAND);
+
+              uint16_t col = (cmd_stack[1] & 0x0F) + 1;
+              uint16_t v0 = cmd_stack[2] & 0x0F;
+              uint16_t v1 = cmd_stack[3] & 0x0F;
+
+              // top part
+              for (int j = 0; j < 4; j++) {
+                uint16_t x0 = col;
+                uint16_t y0 = j + 1;
+                xy2mtx(x0, y0);
+
+                int on = (1 << j) & v0;
+                if (on)
+                  matrix.drawPixel(x0, y0, false);
+                else
+                  matrix.clearPixel(x0, y0, false);
+              }
+
+              // bottom part
+              for (int j = 0; j < 2; j++) {
+                uint16_t x0 = col;
+                uint16_t y0 = j + 5;
+                xy2mtx(x0, y0);
+
+                int on = (1 << j) & v1;
+                if (on)
+                  matrix.drawPixel(x0, y0, false);
+                else
+                  matrix.clearPixel(x0, y0, false);
+              }
+
+              matrix.update();
             } break;
           case CMD_MATRIX_INVERT: {
               for (int i = 0; i < 8; i++)
