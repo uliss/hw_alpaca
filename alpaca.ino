@@ -274,17 +274,17 @@ void parseCommand() {
             }
             break;
           case CMD_MATRIX_ROW: {
-              if (cmd_stack.size() < 5)
+              if (cmd_stack.size() < 4)
                 return sendResultCode(EMPTY_COMMAND);
 
-              uint16_t row = cmd_stack[2] & 0x7F;
-              uint16_t v0 = cmd_stack[3] & 0xF;
-              uint16_t v1 = cmd_stack[4] & 0xF;
+              uint16_t row = (cmd_stack[1] & 0x0F) + 1;
+              uint16_t v0 = cmd_stack[2] & 0x0F;
+              uint16_t v1 = cmd_stack[3] & 0x0F;
 
               // left part
               for (int j = 0; j < 4; j++) {
-                uint16_t x0 = row;
-                uint16_t y0 = j;
+                uint16_t x0 = j;
+                uint16_t y0 = row;
                 xy2mtx(x0, y0);
 
                 int on = (1 << j) & v0;
@@ -296,8 +296,8 @@ void parseCommand() {
 
               // right part
               for (int j = 0; j < 4; j++) {
-                uint16_t x0 = row;
-                uint16_t y0 = j + 4;
+                uint16_t x0 = j + 4;
+                uint16_t y0 = row;
                 xy2mtx(x0, y0);
 
                 int on = (1 << j) & v1;
