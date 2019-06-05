@@ -50,18 +50,17 @@ void setup() {
 
   delay(250);
 
-  matrix.drawRow(0, (uint8_t*)"\1\1\1\1\1\1\1\1");
-  matrix.drawRow(7, (uint8_t*)"\1\1\1\1\1\1\1\1");
-  matrix.drawColumn(0, (uint8_t*)"\1\1\1\1\1\1\1\1");
-  matrix.drawColumn(7, (uint8_t*)"\1\1\1\1\1\1\1\1");
+  matrix.drawRow(0, 0b11111111);
+  matrix.drawRow(7, 0b11111111);
+  matrix.drawColumn(0, 0b11111111);
+  matrix.drawColumn(7, 0b11111111);
 
   delay(250);
 
-  matrix.drawColumn(0, (uint8_t*)"\0\0\0\0\0\0\0\0");
-  matrix.drawColumn(7, (uint8_t*)"\0\0\0\0\0\0\0\0");
-  matrix.drawRow(0, (uint8_t*)"\0\0\0\0\0\0\0\0");
-  matrix.drawRow(7, (uint8_t*)"\0\0\0\0\0\0\0\0");
-
+  matrix.drawColumn(0, 0);
+  matrix.drawColumn(7, 0);
+  matrix.drawRow(0, 0);
+  matrix.drawRow(7, 0);
 
   setJackMode(0, MODE_DIGITAL1);
   setJackMode(1, MODE_DIGITAL1);
@@ -318,9 +317,8 @@ void parseCommand() {
                 return sendResultCode(EMPTY_COMMAND);
             } break;
           case CMD_MATRIX_INVERT: {
-              for (int i = 0; i < 7; i++) {
-                auto row = matrix.getRow(i);
-              }
+              for (int i = 0; i < 8; i++)
+                matrix.invertRow(i, 0b01111110);
             }
             break;
           default:
