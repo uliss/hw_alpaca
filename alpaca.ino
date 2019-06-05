@@ -1,7 +1,8 @@
 // i2c
-#include "Wire.h"
-#include "TroykaLedMatrix.h"
+#include <Wire.h>
+#include <TroykaLedMatrix.h>
 #include <EEPROM.h>
+
 #include "abc.h"
 #include "array.h"
 #include "constants.h"
@@ -23,8 +24,8 @@ JackMode jack_modes[N_INPUTS] = { MODE_DIGITAL_BOTH, MODE_DIGITAL_BOTH };
 typedef Array<byte, 10> ByteStack;
 ByteStack cmd_stack;
 
-#define L7BIT(v) (v & 0x7F)
-#define U7BIT(v) ((v & (~0x007F)) >> 7)
+uint8_t L7BIT(uint16_t v) { return v & 0x7F; }
+uint8_t U7BIT(uint16_t v) { return (v & (~0x007F)) >> 7; }
 
 template<typename T>
 void xy2mtx(T& x, T& y) {
@@ -143,7 +144,7 @@ void setJackMode(byte n, JackMode m) {
 }
 
 void sendResultCode(int e, uint8_t argc = 0, const uint8_t* argv = 0) {
-  const byte pre[] = { CMD_START, CMD_RESPONSE | e };
+  const byte pre[] = { CMD_START, CMD_RESPONSE | uint8_t(e) };
   Serial.write(pre, sizeof(pre));
   Serial.write(argc);
   Serial.write(argv, argc);
